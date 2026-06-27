@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <assert.h>
 #include <math.h>
 
 #define versionCode 1
@@ -213,13 +214,13 @@ void setQrCodeData(char data[], int errorCorrectionLevel)
     int messLen = messLens[errorCorrectionLevel]; // 16
     int corrLen = 26 - messLen;
 
-    if (len > messLen-1)
+    if (len >= messLen-1) // Initially len > messLen-1 but it doesn't work with JamesWebbHubble which have len = 15 ?
     {
-        printf("Data is too long!");
+        printf("Data is too long!\n");
         return;
     }
 
-    printf("messLen = %d\n", messLen);
+    printf("data length is %d/%d\n", len, messLen-2);
 
     short codeWords[26] = {0};
 
@@ -338,7 +339,7 @@ void writeQrCode(const char *filename)
         for (int j = 0; j < size; ++j)
         {
             fprintf(file, "%d ", 1 - qrCode[i][j]);
-            printf("%d", qrCode[i][j]);
+            printf("%c", qrCode[i][j] ? '#' : ' ');
         }
         fprintf(file, "1\n");
         printf("\n");
@@ -352,17 +353,19 @@ void writeQrCode(const char *filename)
     fclose(file);
 }
 
-int main()
+int main(int argc, char const *argv[])
 {
 
     int errorCorrectionLevel = 2; // or 3
-    char data[] = "Hello World!";
+
+    if (argc != 3) {
+        printf("Please enter the message you want to encode first, then the name of the output file (name.pgm)");
+    }
 
     initializeQrCode(errorCorrectionLevel);
-    setQrCodeData(data, errorCorrectionLevel);
-    // printQrCode();
+    setQrCodeData((char *)argv[1], errorCorrectionLevel);
 
-    writeQrCode("image.pgm");
+    writeQrCode(argv[2]);
 
     return 0;
 }
